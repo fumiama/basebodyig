@@ -39,7 +39,11 @@ func NewBodYigChar(charstr string) (c BodYigChar, err error) {
 		}
 		err = c.Set后加字(charstr[3:])
 		return
-	case 9: // 前加字+单符基字+区分符/后加字 / 单符基字+附标+后加字 / 单符基字+后加字+再后加字 / 前加字+双符合字 / 双符合字+附标 / 双符合字+后加字
+	case 9: // 前加字+单符基字+区分符/后加字 / 单符基字+附标+后加字 / 单符基字+后加字+再后加字 / 前加字+双符合字 / 双符合字+附标 / 双符合字+后加字 / 三符合字
+		err = c.Set基字(charstr)
+		if err == nil { // 是 三符合字
+			return
+		}
 		err = c.Set基字(charstr[:6])
 		if err == nil { // 是 双符合字+...
 			err = c.Set附标(charstr[6:])
@@ -83,8 +87,88 @@ func NewBodYigChar(charstr string) (c BodYigChar, err error) {
 		}
 		err = c.Set后加字(charstr[6:9])
 		return
-	case 12: // 前加字+单符基字+后加字+再后加字 / 前加字+单符基字+附标+后加字 / 单符基字+附标+后加字+再后加字
-
+	case 12: // 前加字+单符基字+后加字+再后加字 / 前加字+单符基字+附标+后加字 / 单符基字+附标+后加字+再后加字 / 前加字+双符合字+后加字 / 双符合字+附标+后加字 / 双符合字+后加字+再后加字 / 前加字+三符合字 / 三符合字+附标 / 三符合字+后加字
+		err = c.Set基字(charstr[:9])
+		if err == nil { // 是 三符合字+...
+			err = c.Set附标(charstr[9:12])
+			if err == nil { // 是 +附标
+				return
+			}
+			err = c.Set后加字(charstr[9:12])
+			return
+		}
+		err = c.Set基字(charstr[3:12])
+		if err == nil { // 是 前加字+三符合字
+			err = c.Set前加字(charstr[:3])
+			return
+		}
+		err = c.Set基字(charstr[:6])
+		if err == nil { // 是 双符合字+...
+			err = c.Set附标(charstr[6:9])
+			if err == nil { // 是 +附标+后加字
+				err = c.Set后加字(charstr[9:12])
+				return
+			}
+			err = c.Set后加字(charstr[6:9])
+			if err != nil {
+				return
+			}
+			err = c.Set再后加字(charstr[9:12])
+			return
+		}
+		err = c.Set基字(charstr[3:9])
+		if err == nil { // 是 前加字+双符合字+后加字
+			err = c.Set前加字(charstr[:3])
+			if err != nil {
+				return
+			}
+			err = c.Set后加字(charstr[9:12])
+			return
+		}
+		err = c.Set附标(charstr[3:6])
+		if err == nil { // 是 单符基字+附标+后加字+再后加字
+			err = c.Set基字(charstr[:3])
+			if err != nil {
+				return
+			}
+			err = c.Set后加字(charstr[6:9])
+			if err != nil {
+				return
+			}
+			err = c.Set再后加字(charstr[9:12])
+			return
+		}
+		err = c.Set附标(charstr[6:9])
+		if err == nil { // 是 前加字+单符基字+附标+后加字
+			err = c.Set前加字(charstr[:3])
+			if err != nil {
+				return
+			}
+			err = c.Set基字(charstr[3:6])
+			if err != nil {
+				return
+			}
+			err = c.Set后加字(charstr[9:12])
+			return
+		}
+		// 余下一种可能 前加字+单符基字+后加字+再后加字
+		err = c.Set前加字(charstr[:3])
+		if err != nil {
+			return
+		}
+		err = c.Set基字(charstr[3:6])
+		if err != nil {
+			return
+		}
+		err = c.Set后加字(charstr[6:9])
+		if err != nil {
+			return
+		}
+		err = c.Set再后加字(charstr[9:12])
+		return
+	default:
+		err = ErrInvalidBodYigCharString
+		return
 	}
 	return
 }
